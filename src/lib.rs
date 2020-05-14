@@ -10,10 +10,12 @@ pub fn sum<T>(lines: T) -> Result<Number, Error>
 where
     T: Iterator<Item = String>,
 {
-    lines.map(as_number).sum()
+    lines
+        .map(|s| as_number(&s))
+        .sum()
 }
 
-pub fn as_number(line: String) -> Result<Number, Error> {
+pub fn as_number(line: &str) -> Result<Number, Error> {
     match line.trim().parse() {
         Ok(num) => Ok(num),
         Err(_) => Err(Error::ParsingError),
@@ -26,17 +28,17 @@ mod tests {
 
     #[test]
     fn parses_a_number() {
-        assert_eq!(Ok(42), as_number("42".to_string()));
+        assert_eq!(Ok(42), as_number("42"));
     }
 
     #[test]
     fn parses_a_number_with_whitespace() {
-        assert_eq!(Ok(42), as_number("\t42 \n".to_string()));
+        assert_eq!(Ok(42), as_number("\t42 \n"));
     }
 
     #[test]
     fn fails_on_empty_input() {
-        match as_number("".to_string()) {
+        match as_number("") {
             Ok(v) => panic!("Empty string was parsed to value {}", v),
             Err(e) => println!("Got an expected error: {:?}", e),
         }
