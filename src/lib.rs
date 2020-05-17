@@ -58,11 +58,11 @@ where
         .sum()
 }
 
-pub fn sum_strings<T>(strings: T) -> Result<Number, ApplicationError>
+pub fn sum_strings<'a, T,>(strings: T) -> Result<Number, ApplicationError>
 where
-    T: Iterator<Item = String>,
+    T: Iterator<Item = &'a str>,
 {
-    sum(strings.map(|s| Ok(s)))
+    sum(strings.map(|s| Ok(String::from(s))))
 }
 
 #[cfg(test)]
@@ -104,24 +104,21 @@ mod tests {
 
     #[test]
     fn single_element_is_equal_to_sum() {
-        let stream = vec!["42".to_string()].into_iter();
+        let stream = vec!["42"].into_iter();
 
         assert_eq!(sum_strings(stream).unwrap(), 42);
     }
 
     #[test]
     fn sums_two_elements() {
-        let stream = vec![
-            "39".to_string(),
-            "30".to_string()
-        ].into_iter();
+        let stream = vec!["39", "30"].into_iter();
 
         assert_eq!(sum_strings(stream).unwrap(), 69);
     }
 
     #[test]
     fn propagates_internal_errors() {
-        let stream = vec!["".to_string()].into_iter();
+        let stream = vec![""].into_iter();
         sum_strings(stream).unwrap_err();
     }
 
