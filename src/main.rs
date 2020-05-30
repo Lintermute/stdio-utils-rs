@@ -21,8 +21,9 @@
 use std::io::BufRead;
 use stdio_utils::ApplicationError;
 
-fn main() {
-    let stdin  = std::io::stdin();
+fn main()
+{
+    let stdin = std::io::stdin();
     let result = stdio_utils::sum(stdin.lock().lines());
 
     let sum = result.unwrap_or_else(|err| match err {
@@ -33,7 +34,7 @@ fn main() {
         ApplicationError::ParsingError(e) => {
             eprintln!("Bad input data: {}", e);
             std::process::exit(1)
-        },
+        }
     });
 
     println!("{}", sum);
