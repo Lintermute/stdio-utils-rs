@@ -1,0 +1,39 @@
+# Parallel implementation of the steps defined in quality-control.rs.
+
+name: QC
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install minimal nightly Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: nightly
+        components: rustfmt, clippy
+
+    - run: cargo +nightly fmt -- --check
+    - run: cargo +nightly clippy --all-targets --all-features -- -Dwarnings
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install minimal stable Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+
+    # Use individual steps so we get a nice overview in the GitHub UI.
+    - run: cargo build
+    - run: cargo test
+    - run: cargo build --release
+    - run: cargo test --release
