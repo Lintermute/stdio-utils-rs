@@ -22,8 +22,40 @@ jobs:
     - run: cargo +nightly fmt -- --check
     - run: cargo +nightly clippy --all-targets --all-features -- -Dwarnings
 
-  test:
+  test_on_linux:
     runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install minimal stable Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+
+    # Use individual steps so we get a nice overview in the GitHub UI.
+    - run: cargo build
+    - run: cargo test
+    - run: cargo build --release
+    - run: cargo test --release
+
+  test_on_mac:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install minimal stable Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+
+    # Use individual steps so we get a nice overview in the GitHub UI.
+    - run: cargo build
+    - run: cargo test
+    - run: cargo build --release
+    - run: cargo test --release
+
+  test_on_windows:
+    runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
     - name: Install minimal stable Rust toolchain
