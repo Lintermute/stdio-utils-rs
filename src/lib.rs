@@ -18,6 +18,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+//! A minimal library that sums numbers read from a stream of strings,
+//! such as `stdin`:
+//!
+//!     let twenty = "20";
+//!     let twentytwo = "22";
+//!     let stream = vec![twenty, twentytwo].into_iter();
+//!     assert_eq!(stdio_utils::sum_strings(stream).unwrap(), 42);
+//!
+//!     let twenty = Ok(String::from("20"));
+//!     let twentytwo = Ok(String::from("22"));
+//!     let stream = vec![twenty, twentytwo].into_iter();
+//!     assert_eq!(stdio_utils::sum(stream).unwrap(), 42);
+
 use std::{
     error,
     fmt,
@@ -81,12 +94,54 @@ fn as_number(line: &str) -> Result<Number, ParsingError>
     })
 }
 
+/// Sums a stream of `String` `Result`s.
+///
+/// # Examples
+///
+///     let twenty = Ok(String::from("20"));
+///     let twentytwo = Ok(String::from("22"));
+///     let stream = vec![twenty, twentytwo].into_iter();
+///     assert_eq!(stdio_utils::sum(stream).unwrap(), 42);
+///
+/// # Errors
+///
+/// Errors passed as input be propagated:
+///
+///     use std::io;
+///     let input_error = io::Error::new(io::ErrorKind::Other, "Mock Error");
+///     let stream = vec![Err(input_error)].into_iter();
+///     stdio_utils::sum(stream).unwrap_err();
+///
+/// # See also
+///
+/// - [`sum_strings()`](fn.sum_strings.html): Variant that takes string literals
+
 pub fn sum<T>(lines: T) -> Result<Number, ApplicationError>
 where
     T: Iterator<Item = Result<String, io::Error>>,
 {
     lines.map(|line| Ok(as_number(&line?)?)).sum()
 }
+
+/// Sums a stream of string literals.
+///
+/// # Examples
+///
+///     let twenty = "20";
+///     let twentytwo = "22";
+///     let stream = vec![twenty, twentytwo].into_iter();
+///     assert_eq!(stdio_utils::sum_strings(stream).unwrap(), 42);
+///
+/// # Errors
+///
+/// Internal errors, such as parsing errors, will be returned to the caller:
+///
+///     let stream = vec!["this_is_not_a_number"].into_iter();
+///     stdio_utils::sum_strings(stream).unwrap_err();
+///
+/// # See also
+///
+/// - [`sum()`](fn.sum.html): Variant that takes `Result`s as parameter
 
 pub fn sum_strings<'a, T>(strings: T) -> Result<Number, ApplicationError>
 where
@@ -150,35 +205,8 @@ mod tests
         assert_eq!(sum_strings(stream).unwrap(), 42);
     }
 
-    #[test]
-    fn sums_two_elements()
-    {
-        let stream = vec!["39", "30"].into_iter();
-
-        assert_eq!(sum_strings(stream).unwrap(), 69);
-    }
-
-    #[test]
-    fn propagates_internal_errors()
-    {
-        let stream = vec![""].into_iter();
-        sum_strings(stream).unwrap_err();
-    }
-
-    #[test]
-    fn propagates_external_errors()
-    {
-        let stream = vec![Err(create_io_error())].into_iter();
-        sum(stream).unwrap_err();
-    }
-
     fn bad_input_char() -> &'static str
     {
         "$"
-    }
-
-    fn create_io_error() -> io::Error
-    {
-        io::Error::new(io::ErrorKind::Other, "Mock Error")
     }
 }
