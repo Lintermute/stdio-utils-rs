@@ -7,6 +7,11 @@ edition = "2018"
 [workspace]
 members = ["tools"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dev-dependencies]
+anyhow = "1.0"
+criterion = "0.3"
 
-[dependencies]
+[[bench]]
+path = "benches/quick_comparison_against_other_solutions.rs"
+name = "quick_comparison_against_other_solutions"
+harness = false # use criterion instead
