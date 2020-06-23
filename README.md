@@ -6,7 +6,7 @@ A minimal Rust program that sums integers read from stdin:
 	• printf "1\n4\n-1\n3\n" | stdio-utils
 	7
 
-Run `./benchmark.sh` to compare it against other common solutions
+Run `cargo bench` to compare it against other common solutions
 as discussed on the stackoverflow question
 [“Shell command to sum integers, one per line”][stackoverflow].
 
