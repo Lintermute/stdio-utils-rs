@@ -98,7 +98,7 @@ fn create_test_data_file(filename: &str) -> Result<()>
 
     let cmd = "shuf";
     let state = Command::new(cmd)
-        .args(&["-i", "0-99", "-n", "1000", "-r"])
+        .args(&["-i", "0-99", "-n", "10000000", "-r"])
         .stdout(result)
         .status()
         .with_context(|| format!("Failed to write test data using `{}`", cmd))?
