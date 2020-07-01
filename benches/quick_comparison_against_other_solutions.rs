@@ -63,8 +63,10 @@ fn main() -> Result<()>
 
     let mut c = Criterion::default().sample_size(10).configure_from_args();
 
-    create_test_data_file(filename)?;
-    let expected_result = run_stdio_utils(filename)?;
+    create_test_data_file(filename).context("Failed to create test inputs")?;
+
+    let expected_result = run_stdio_utils(filename)
+        .context("Failed to compute expected test result")?;
 
     c.bench_function(
         env!("CARGO_PKG_NAME"),
@@ -89,27 +91,22 @@ fn main() -> Result<()>
 
 fn create_test_data_file(filename: &str) -> Result<()>
 {
-    let result = OpenOptions::new()
-        .create_new(true)
-        .write(true)
-        .read(false)
-        .open(filename)
-        .with_context(|| format!("Failed to create test file {}", filename))?;
+    let test_data_file = fcreate(filename)?;
 
     let cmd = "shuf";
-    let state = Command::new(cmd)
+    let status = Command::new(cmd)
         .args(&["-i", "0-99", "-n", "10000000", "-r"])
-        .stdout(result)
+        .stdout(test_data_file)
         .status()
-        .with_context(|| format!("Failed to write test data using `{}`", cmd))?
+        .with_context(|| format!("Failed to start program `{}`", cmd))?
         .code()
         .with_context(|| format!("Failed to read exit status of `{}`", cmd))?;
 
     ensure!(
-        state == 0,
-        "Failed writing test data: {} returned {}",
+        status == 0,
+        "Program \"{}\" returned error code {}",
         cmd,
-        state
+        status
     );
 
     Ok(())
@@ -121,10 +118,20 @@ fn delete_test_data_file(filename: &str) -> Result<()>
         .with_context(|| format!("Failed to delete test file \"{}\"", filename))
 }
 
+fn fcreate(filename: &str) -> Result<File>
+{
+    OpenOptions::new()
+        .create_new(true)
+        .write(true)
+        .read(false)
+        .open(filename)
+        .with_context(|| format!("Failed to create file \"{}\"", filename))
+}
+
 fn fopen(filename: &str) -> Result<File>
 {
     File::open(filename)
-        .with_context(|| format!("Failed to open test file \"{}\"", filename))
+        .with_context(|| format!("Failed to open file \"{}\"", filename))
 }
 
 fn run_stdio_utils(test_data_filename: &str) -> Result<isize>
