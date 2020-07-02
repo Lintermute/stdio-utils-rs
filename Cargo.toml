@@ -17,3 +17,8 @@ criterion = "0.3"
 path = "benches/quick_comparison_against_other_solutions.rs"
 name = "quick_comparison_against_other_solutions"
 harness = false # use criterion instead
+
+[[bench]]
+path = "benches/exhaustive_benchmark.rs"
+name = "exhaustive_benchmark"
+harness = false # use criterion instead
