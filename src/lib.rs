@@ -31,12 +31,7 @@
 //!     let stream = vec![twenty, twentytwo].into_iter();
 //!     assert_eq!(stdio_utils::sum(stream).unwrap(), 42);
 
-use std::{
-    error,
-    fmt,
-    io,
-    num,
-};
+use std::{error, fmt, io, num};
 
 #[derive(Debug)]
 pub struct ParsingError

@@ -5,8 +5,6 @@ authors = ["Andreas Waidler <waidler@programmers.at>"]
 edition = "2018"
 
 [workspace]
-members = ["tools"]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
+members = [
+    "tools",
+]
