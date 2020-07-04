@@ -31,7 +31,7 @@ pub fn main() -> Result<()>
     create_test_data_file(filename, 100_000_000)
         .context("Failed to create test inputs")?;
 
-    c.bench_function(env!("CARGO_PKG_NAME"), wrap!(run_ours(filename)));
+    c.bench_function("exhaustive", wrap!(run_ours(filename)));
 
     delete_test_data_file(filename)
         .context("Failed to clean up test input file")?;
