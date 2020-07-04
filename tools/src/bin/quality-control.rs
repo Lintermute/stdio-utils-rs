@@ -34,14 +34,15 @@ fn main()
         "-Dwarnings",
     ]);
 
-    cargo(&["build", "--workspace"]);
-    cargo(&["build", "--workspace", "--release"]);
+    cargo(&["build", "--locked", "--workspace"]);
+    cargo(&["build", "--locked", "--workspace", "--release"]);
 
-    cargo(&["test", "--workspace"]);
-    cargo(&["test", "--workspace", "--release"]);
+    cargo(&["test", "--locked", "--workspace"]);
+    cargo(&["test", "--locked", "--workspace", "--release"]);
 
-    // cargo(&["+nightly", "--workspace", "miri", "test"]);
-    // cargo(&["+nightly", "--workspace", "miri", "test", "--release"]);
+    // cargo(&["+nightly", "miri", "test", "--locked", "--workspace"]);
+    // cargo(&["+nightly", "miri", "test", "--locked", "--workspace",
+    // "--release"]);
 }
 
 fn cargo<I, S>(args: I)

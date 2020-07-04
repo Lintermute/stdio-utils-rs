@@ -33,10 +33,10 @@ jobs:
         toolchain: stable
 
     # Use individual steps so we get a nice overview in the GitHub UI.
-    - run: cargo build --workspace
-    - run: cargo test --workspace
-    - run: cargo build --workspace --release
-    - run: cargo test --workspace --release
+    - run: cargo build --locked --workspace
+    - run: cargo test  --locked --workspace
+    - run: cargo build --locked --workspace --release
+    - run: cargo test  --locked --workspace --release
 
   test_on_mac:
     runs-on: macos-latest
@@ -49,10 +49,10 @@ jobs:
         toolchain: stable
 
     # Use individual steps so we get a nice overview in the GitHub UI.
-    - run: cargo build --workspace
-    - run: cargo test --workspace
-    - run: cargo build --workspace --release
-    - run: cargo test --workspace --release
+    - run: cargo build --locked --workspace
+    - run: cargo test  --locked --workspace
+    - run: cargo build --locked --workspace --release
+    - run: cargo test  --locked --workspace --release
 
   test_on_windows:
     runs-on: windows-latest
@@ -65,7 +65,7 @@ jobs:
         toolchain: stable
 
     # Use individual steps so we get a nice overview in the GitHub UI.
-    - run: cargo build --workspace
-    - run: cargo test --workspace
-    - run: cargo build --workspace --release
-    - run: cargo test --workspace --release
+    - run: cargo build --locked --workspace
+    - run: cargo test  --locked --workspace
+    - run: cargo build --locked --workspace --release
+    - run: cargo test  --locked --workspace --release
