@@ -31,62 +31,22 @@
 //!     let stream = vec![twenty, twentytwo].into_iter();
 //!     assert_eq!(stdio_utils::sum(stream).unwrap(), 42);
 
-use std::{error, fmt, io, num};
-
-#[derive(Debug)]
-pub struct ParsingError
-{
-    input: String,
-    error: num::ParseIntError,
-}
-
-impl fmt::Display for ParsingError
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result
-    {
-        write!(
-            f,
-            "Could not parse \"{}\" to number: {:?}",
-            self.input, self.error
-        )
-    }
-}
-
-impl error::Error for ParsingError {}
-
-#[derive(Debug)]
-pub enum ApplicationError
-{
-    InputError(io::Error),
-    ParsingError(ParsingError),
-}
-
-impl From<io::Error> for ApplicationError
-{
-    fn from(e: io::Error) -> ApplicationError
-    {
-        ApplicationError::InputError(e)
-    }
-}
-
-impl From<ParsingError> for ApplicationError
-{
-    fn from(e: ParsingError) -> ApplicationError
-    {
-        ApplicationError::ParsingError(e)
-    }
-}
+use std::{io, num};
 
 type Number = isize;
 
-fn as_number(line: &str) -> Result<Number, ParsingError>
+#[derive(thiserror::Error, Debug)]
+pub enum Error
 {
-    // We cannot use From here because ParseIntError
-    // does not contain a reference to offending input.
-    line.trim().parse().map_err(|err| ParsingError {
-        input: String::from(line),
-        error: err,
-    })
+    #[error("Could not read input")]
+    InputError(#[source] std::io::Error),
+
+    #[error("Could not parse \"{input}\" to number")]
+    ParsingError
+    {
+        input:  String,
+        source: num::ParseIntError,
+    },
 }
 
 /// Sums a stream of `String` `Result`s.
@@ -111,11 +71,28 @@ fn as_number(line: &str) -> Result<Number, ParsingError>
 ///
 /// - [`sum_strings()`](fn.sum_strings.html): Variant that takes string literals
 
-pub fn sum<T>(lines: T) -> Result<Number, ApplicationError>
+pub fn sum<T>(lines: T) -> Result<Number, Error>
 where
     T: Iterator<Item = Result<String, io::Error>>,
 {
-    lines.map(|line| Ok(as_number(&line?)?)).sum()
+    read(lines).map(|line| as_number(&line?)).sum()
+}
+
+fn read<T>(lines: T) -> impl Iterator<Item = Result<String, Error>>
+where
+    T: Iterator<Item = Result<String, io::Error>>,
+{
+    lines.map(|line| line.map_err(Error::InputError))
+}
+
+fn as_number(line: &str) -> Result<Number, Error>
+{
+    // We cannot use From here because ParseIntError
+    // does not contain a reference to offending input.
+    line.trim().parse().map_err(|source| Error::ParsingError {
+        input: String::from(line),
+        source,
+    })
 }
 
 /// Sums a stream of string literals.
@@ -138,7 +115,7 @@ where
 ///
 /// - [`sum()`](fn.sum.html): Variant that takes `Result`s as parameter
 
-pub fn sum_strings<'a, T>(strings: T) -> Result<Number, ApplicationError>
+pub fn sum_strings<'a, T>(strings: T) -> Result<Number, Error>
 where
     T: Iterator<Item = &'a str>,
 {
