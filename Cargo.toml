@@ -8,3 +8,17 @@ edition = "2018"
 members = [
     "tools",
 ]
+
+[dev-dependencies]
+anyhow = "1.0"
+criterion = "0.3"
+
+[[bench]]
+path = "benches/quick_comparison_against_other_solutions.rs"
+name = "quick_comparison_against_other_solutions"
+harness = false # use criterion instead
+
+[[bench]]
+path = "benches/exhaustive_benchmark.rs"
+name = "exhaustive_benchmark"
+harness = false # use criterion instead
