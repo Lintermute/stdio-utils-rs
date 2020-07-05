@@ -26,8 +26,8 @@
 //!     let stream = vec![twenty, twentytwo].into_iter();
 //!     assert_eq!(stdio_utils::sum_strings(stream).unwrap(), 42);
 //!
-//!     let twenty = Ok(String::from("20"));
-//!     let twentytwo = Ok(String::from("22"));
+//!     let twenty = Ok("20");
+//!     let twentytwo = Ok("22");
 //!     let stream = vec![twenty, twentytwo].into_iter();
 //!     assert_eq!(stdio_utils::sum(stream).unwrap(), 42);
 
@@ -38,9 +38,11 @@ type Number = isize;
 #[derive(thiserror::Error, Debug)]
 pub enum Error
 {
+    /// Returned when reading the input fails, e.g. on non-UTF-8 data.
     #[error("Could not read input")]
     InputError(#[source] std::io::Error),
 
+    /// Returned when parsing input text as number fails.
     #[error("Could not parse \"{input}\" to number")]
     ParsingError
     {
@@ -49,53 +51,9 @@ pub enum Error
     },
 }
 
-/// Sums a stream of `String` `Result`s.
-///
-/// # Examples
-///
-///     let twenty = Ok(String::from("20"));
-///     let twentytwo = Ok(String::from("22"));
-///     let stream = vec![twenty, twentytwo].into_iter();
-///     assert_eq!(stdio_utils::sum(stream).unwrap(), 42);
-///
-/// # Errors
-///
-/// Errors passed as input be propagated:
-///
-///     use std::io;
-///     let input_error = io::Error::new(io::ErrorKind::Other, "Mock Error");
-///     let stream = vec![Err(input_error)].into_iter();
-///     stdio_utils::sum(stream).unwrap_err();
-///
-/// # See also
-///
-/// - [`sum_strings()`](fn.sum_strings.html): Variant that takes string literals
-
-pub fn sum<T>(lines: T) -> Result<Number, Error>
-where
-    T: Iterator<Item = Result<String, io::Error>>,
-{
-    read(lines).map(|line| as_number(&line?)).sum()
-}
-
-fn read<T>(lines: T) -> impl Iterator<Item = Result<String, Error>>
-where
-    T: Iterator<Item = Result<String, io::Error>>,
-{
-    lines.map(|line| line.map_err(Error::InputError))
-}
-
-fn as_number(line: &str) -> Result<Number, Error>
-{
-    // We cannot use From here because ParseIntError
-    // does not contain a reference to offending input.
-    line.trim().parse().map_err(|source| Error::ParsingError {
-        input: String::from(line),
-        source,
-    })
-}
-
-/// Sums a stream of string literals.
+/// Reads a stream of “stringy” values (`AsRef<str>`),
+/// parses the input as numbers,
+/// and returns their sum (or a high-level error).
 ///
 /// # Examples
 ///
@@ -113,13 +71,69 @@ fn as_number(line: &str) -> Result<Number, Error>
 ///
 /// # See also
 ///
-/// - [`sum()`](fn.sum.html): Variant that takes `Result`s as parameter
+/// - [`sum()`](fn.sum.html): Variant that takes `Result`s as input
 
 pub fn sum_strings<'a, T>(strings: T) -> Result<Number, Error>
 where
     T: Iterator<Item = &'a str>,
 {
-    sum(strings.map(|s| Ok(String::from(s))))
+    sum(strings.map(Ok))
+}
+
+/// Reads a stream of `Result`s containing either
+/// “stringy” input (`AsRef<str>`) or I/O errors,
+/// parses the input as numbers,
+/// and returns their sum (or a high-level error).
+///
+/// # Examples
+///
+///     let twenty = Ok(String::from("20"));
+///     let twentytwo = Ok(String::from("22"));
+///     let stream = vec![twenty, twentytwo].into_iter();
+///     assert_eq!(stdio_utils::sum(stream).unwrap(), 42);
+///
+/// # Errors
+///
+/// Errors passed as input will be wrapped and propagated:
+///
+///     use std::io;
+///     let error = io::Error::new(io::ErrorKind::Other, "Mock Error");
+///     let input: Result<String, io::Error> = Err(error);
+///     let stream = vec![input].into_iter();
+///     stdio_utils::sum(stream)
+///         .expect_err("Error in, error out");
+///
+/// # See also
+///
+/// - [`sum_strings()`](fn.sum_strings.html): Variant for error-free input
+
+pub fn sum<S, T>(lines: T) -> Result<Number, Error>
+where
+    S: AsRef<str>,
+    T: Iterator<Item = Result<S, io::Error>>,
+{
+    read(lines).map(|line| as_number(line?)).sum()
+}
+
+fn read<S, T>(lines: T) -> impl Iterator<Item = Result<S, Error>>
+where
+    S: AsRef<str>,
+    T: Iterator<Item = Result<S, io::Error>>,
+{
+    lines.map(|line| line.map_err(Error::InputError))
+}
+
+fn as_number(line: impl AsRef<str>) -> Result<Number, Error>
+{
+    // We cannot use From here because ParseIntError
+    // does not contain a reference to offending input.
+    line.as_ref()
+        .trim()
+        .parse()
+        .map_err(|source| Error::ParsingError {
+            input: String::from(line.as_ref()),
+            source,
+        })
 }
 
 #[cfg(test)]
@@ -166,7 +180,7 @@ mod tests
     fn empty_stream_returns_zero()
     {
         let stream = std::iter::empty();
-        assert_eq!(sum(stream).unwrap(), 0);
+        assert_eq!(sum_strings(stream).unwrap(), 0);
     }
 
     #[test]
