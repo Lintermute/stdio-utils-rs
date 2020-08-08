@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#![forbid(unsafe_code)]
+
 //! A minimal library that sums numbers read from a stream of strings,
 //! such as `stdin`:
 //!

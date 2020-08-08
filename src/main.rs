@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#![forbid(unsafe_code)]
+
 use anyhow::Result;
 use std::io::BufRead;
 
